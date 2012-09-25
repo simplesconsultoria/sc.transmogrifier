@@ -4,5 +4,5 @@ Changelog
 0.1-dev (unreleased)
 --------------------
 
-- Package created using templer
+- Created package with the `redirector` blueprint.
   [Leonardo Rochael Almeida]
