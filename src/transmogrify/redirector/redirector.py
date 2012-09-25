@@ -1,0 +1,69 @@
+from zope.interface import classProvides, implements
+from zope.component import queryUtility
+from collective.transmogrifier.utils import defaultMatcher
+from collective.transmogrifier.interfaces import ISectionBlueprint, ISection
+from plone.app.redirector.interfaces import IRedirectionStorage
+
+_marker = object()
+
+from logging import getLogger
+
+log = getLogger(__name__)
+
+class RedirectorBlueprint(object):
+
+    classProvides(ISectionBlueprint)
+    implements(ISection)
+
+    def __init__(self, transmogrifier, name, options, previous):
+        self.previous = previous
+        self.context = transmogrifier.context
+        self.name = name
+        self.pathKey = defaultMatcher(options, 'path-key', name, 'path')
+        self.originalPathKey = defaultMatcher(options, 'orig-path-key', name,
+                                              'orig_path')
+        self.seen_count = self.changed_count = 0
+        self.portal_path = '/'.join(self.context.getPhysicalPath())
+
+        self.redirector = queryUtility(IRedirectionStorage)
+        if self.redirector is None:
+            log.error('No IRedirectionStorage found, skipping all redirections.')
+
+    def getObject(self, path):
+        obj = self.context.unrestrictedTraverse(path, None)
+        # Weed out implicit Acquisition
+        if obj is not None and '/'.join(obj.getPhysicalPath()) != path:
+            log.warn("Ignoring %r: path doesn't match %r", obj, path)
+            return None
+        return obj
+
+    def transmogrify(self, item):
+        if self.redirector is None:
+            return
+        path_key = self.pathKey(*item.keys())[0]
+        original_path_key = self.originalPathKey(*item.keys())[0]
+        if not (path_key and original_path_key):
+            # not enough info
+            return
+
+        path, original_path = [
+            self.portal_path + '/' + item[key].encode().lstrip('/')
+            for key in (path_key, original_path_key)
+        ]
+
+        obj = self.getObject(path)
+        if obj is None:
+            # path doesn't exist
+            return
+
+        self.redirector.add(original_path, path)
+        self.changed_count +=1
+
+    def __iter__(self):
+        for item in self.previous:
+            self.seen_count += 1
+            self.transmogrify(item)
+            yield item
+        log.info("Seen: %s, changed: %s", self.seen_count, self.changed_count,
+                 extra=dict(seen_count=self.seen_count,
+                            changed_count=self.changed_count,))
