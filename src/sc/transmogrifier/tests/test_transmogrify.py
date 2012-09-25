@@ -25,8 +25,8 @@ from collective.transmogrifier.sections.tests import SampleSource
 
 OLD_NAME = 'oldPath'
 NEW_NAME = 'newPath'
-TEST_SOURCE = u'transmogrify.redirector.tests.redirectorsource'
-TEST_PIPELINE_CONFIG = u"transmogrify.redirector.tests.pipeline"
+TEST_SOURCE = u'sc.transmogrifier.tests.redirectorsource'
+TEST_PIPELINE_CONFIG = u"sc.transmogrifier.tests.pipeline"
 TESTS_FOLDER = unicode(os.path.dirname(__file__), sys.getfilesystemencoding())
 SOURCE_SAMPLE = (
     dict(_path='/' + NEW_NAME,
@@ -58,9 +58,9 @@ class TransmogrifyRedirectorLayer(PloneSandboxLayer):
 
     def setUpZope(self, app, configurationContext):
         # Load ZCML
-        import transmogrify.redirector
+        import sc.transmogrifier
         xmlconfig.file('configure.zcml',
-                       transmogrify.redirector, context=configurationContext)
+                       sc.transmogrifier, context=configurationContext)
         import collective.transmogrifier
         xmlconfig.file('configure.zcml',
                        collective.transmogrifier, context=configurationContext)
@@ -96,13 +96,13 @@ class TestTransmogrify(TestCase):
         self.new_path = portal_path + '/' + NEW_NAME
         # capture all the logs of the pipeline section
         self.handler = logging.handlers.BufferingHandler(sys.maxint)
-        from transmogrify.redirector.redirector import log
+        from sc.transmogrifier.redirector import log
         log.addHandler(self.handler)
         self._old_log_level = log.level
         log.setLevel(1)
 
     def tearDown(self):
-        from transmogrify.redirector.redirector import log
+        from sc.transmogrifier.redirector import log
         log.removeHandler(self.handler)
         self.handler.flush()
         log.level = self._old_log_level

@@ -18,7 +18,7 @@ tests_require = [
     'plone.app.testing',
 ]
 
-setup(name='transmogrify.redirector',
+setup(name='sc.transmogrifier',
       version=version,
       description="A blueprint for collective.transmogrifier for adding redirections",
       long_description=long_description,
@@ -30,11 +30,11 @@ setup(name='transmogrify.redirector',
       keywords='',
       author='Leonardo Rochael Almeida',
       author_email='LeoRochael@gmail.com',
-      url='http://pypi.python.org/pypi/transmogrify.redirector',
+      url='http://pypi.python.org/pypi/sc.transmogrifier',
       license='GPL2',
       packages=find_packages('src'),
       package_dir = {'': 'src'},
-      namespace_packages=['transmogrify'],
+      namespace_packages=['sc'],
       include_package_data=True,
       zip_safe=False,
       install_requires=[

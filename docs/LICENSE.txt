@@ -1,4 +1,4 @@
-transmogrify.redirector Copyright 2012, Leonardo Rochael Almeida
+sc.transmogrifier Copyright 2012, Leonardo Rochael Almeida
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
