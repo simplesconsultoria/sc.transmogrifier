@@ -25,6 +25,7 @@ setup(name='transmogrify.redirector',
       classifiers=[
         "Programming Language :: Python",
         "Framework :: Plone :: 4.2",
+        "Framework :: collective.transmogrifier :: Blueprint",
         ],
       keywords='',
       author='Leonardo Rochael Almeida',
