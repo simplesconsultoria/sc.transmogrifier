@@ -25,7 +25,7 @@ from collective.transmogrifier.sections.tests import SampleSource
 
 OLD_NAME = 'oldPath'
 NEW_NAME = 'newPath'
-TEST_SOURCE = u'transmogrify.redirector.tests.source'
+TEST_SOURCE = u'transmogrify.redirector.tests.redirectorsource'
 TEST_PIPELINE_CONFIG = u"transmogrify.redirector.tests.pipeline"
 TESTS_FOLDER = unicode(os.path.dirname(__file__), sys.getfilesystemencoding())
 SOURCE_SAMPLE = (

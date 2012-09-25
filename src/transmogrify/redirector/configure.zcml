@@ -6,7 +6,7 @@
 
     <utility
         component=".redirector.RedirectorBlueprint"
-        name="transmogrify.redirector"
+        name="transmogrify.redirector.redirector"
         />
 
 </configure>
