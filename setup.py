@@ -43,7 +43,7 @@ setup(name='sc.transmogrifier',
           'plone.app.redirector',
       ],
       tests_require=tests_require,
-      extras_require=dict(tests=tests_require),
+      extras_require=dict(test=tests_require),
       entry_points="""
         [z3c.autoinclude.plugin]
         target = plone
