@@ -9,9 +9,9 @@ long_description = (
     'Contributors\n'
     '============\n'
     + '\n' +
-    open('CONTRIBUTORS.txt').read()
+    open('docs/CONTRIBUTORS.txt').read()
     + '\n' +
-    open('CHANGES.txt').read()
+    open('docs/CHANGES.txt').read()
     + '\n')
 
 tests_require = [
