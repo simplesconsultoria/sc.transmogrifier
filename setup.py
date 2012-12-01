@@ -1,39 +1,37 @@
+# -*- coding:utf-8 -*-
 from setuptools import setup, find_packages
+
 import os
 
 version = '0.1'
 
-long_description = (
-    open('README.rst').read()
-    + '\n' +
-    'Contributors\n'
-    '============\n'
-    + '\n' +
-    open('docs/CONTRIBUTORS.txt').read()
-    + '\n' +
-    open('docs/CHANGES.txt').read()
-    + '\n')
-
-tests_require = [
-    'plone.app.testing',
-]
+long_description = (open("README.rst").read() + "\n" +
+                    open(os.path.join("docs", "CONTRIBUTORS.txt")).read() + "\n" +
+                    open(os.path.join("docs", "CHANGES.txt")).read())
 
 setup(name='sc.transmogrifier',
       version=version,
-      description="A blueprint for collective.transmogrifier for adding redirections",
+      description="""A blueprint for collective.transmogrifier for adding
+                     redirections""",
       long_description=long_description,
       classifiers=[
-        "Programming Language :: Python",
-        "Framework :: Plone :: 4.2",
-        "Framework :: collective.transmogrifier :: Blueprint",
-        ],
-      keywords='',
+          "Environment :: Web Environment",
+          "Framework :: Plone",
+          "Framework :: Plone :: 4.2",
+          "Framework :: Plone :: 4.3",
+          "Framework :: Zope3",
+          "Intended Audience :: Developers",
+          "License :: OSI Approved :: GNU General Public License (GPL)",
+          "Operating System :: OS Independent",
+          "Programming Language :: Python"
+      ],
+      keywords='transmogrifier blueprint plone simplesconsultoria',
       author='Leonardo Rochael Almeida',
       author_email='LeoRochael@gmail.com',
-      url='http://pypi.python.org/pypi/sc.transmogrifier',
-      license='GPL version 2',
+      url='http://github.com/simplesconsultoria/sc.transmogrifier',
+      license='gpl',
       packages=find_packages('src'),
-      package_dir = {'': 'src'},
+      package_dir={'': 'src'},
       namespace_packages=['sc'],
       include_package_data=True,
       zip_safe=False,
@@ -42,8 +40,18 @@ setup(name='sc.transmogrifier',
           'collective.transmogrifier',
           'plone.app.redirector',
       ],
-      tests_require=tests_require,
-      extras_require=dict(test=tests_require),
+      extras_require={
+          'develop': [
+              'Sphinx',
+              'manuel',
+              'pep8',
+              'setuptools-flakes',
+          ],
+          'test': [
+              'interlude',
+              'plone.app.testing'
+          ],
+      },
       entry_points="""
         [z3c.autoinclude.plugin]
         target = plone
