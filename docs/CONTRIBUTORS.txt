@@ -1,1 +1,11 @@
-Leonardo Rochael Almeida, Author
+Sponsoring
+------------
+Development of this product was sponsored by :
+
+    * `Simples Consultoria <http://www.simplesconsultoria.com.br/>`_.
+
+Credits
+------------
+
+    * Leonardo Rochael Almeida, author
+    * Erico Andrei, packaging
