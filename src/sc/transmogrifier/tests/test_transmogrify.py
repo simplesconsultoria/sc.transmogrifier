@@ -1,27 +1,25 @@
+# -*- coding:utf-8 -*-
+from collective.transmogrifier.interfaces import ISection
+from collective.transmogrifier.interfaces import ISectionBlueprint
+from collective.transmogrifier.sections.tests import SampleSource
+from plone.app.redirector.interfaces import IRedirectionStorage
+from plone.app.testing import IntegrationTesting
+from plone.app.testing import PLONE_FIXTURE
+from plone.app.testing import PloneSandboxLayer
+from plone.app.testing import SITE_OWNER_NAME
+from plone.testing import z2
+from unittest import TestCase
+from zope.component import ComponentLookupError
+from zope.component import getUtility
+from zope.component import provideUtility
+from zope.configuration import xmlconfig
+from zope.interface import classProvides
+from zope.interface import implements
+from zope.site.hooks import getSiteManager
+
+import logging.handlers
 import os.path
 import sys
-import logging.handlers
-from unittest import TestCase
-
-from zope.interface import classProvides, implements
-from zope.component import (
-    provideUtility,
-    queryUtility,
-    getUtility,
-    ComponentLookupError,
-)
-from zope.site.hooks import getSiteManager
-from zope.configuration import xmlconfig
-from plone.app.redirector.interfaces import IRedirectionStorage
-from plone.testing import z2
-from plone.app.testing import (
-    PLONE_FIXTURE,
-    SITE_OWNER_NAME,
-    PloneSandboxLayer,
-    IntegrationTesting,
-)
-from collective.transmogrifier.interfaces import ISectionBlueprint, ISection
-from collective.transmogrifier.sections.tests import SampleSource
 
 OLD_NAME = 'oldPath'
 OTHER_OLD_NAME = 'veryOldPath'
@@ -32,31 +30,29 @@ TESTS_FOLDER = unicode(os.path.dirname(__file__), sys.getfilesystemencoding())
 SOURCE_SAMPLE = (
     dict(_path='/' + NEW_NAME,
          _type='Folder',
-         _orig_path='/' + OLD_NAME,
-    ),
+         _orig_path='/' + OLD_NAME),
     # element without `_path`, should be ignored
     dict(_type='Folder',
-         _orig_path='/someOrigPath',
-    ),
+         _orig_path='/someOrigPath'),
     # element without `_orig_path`, should be ignored
     dict(_path='/somePath',
-         _type='Folder',
-    ),
-    # element with `_orig_path` as a list should be processed    
+         _type='Folder'),
+    # element with `_orig_path` as a list should be processed
     dict(_path='/' + NEW_NAME,
          _type='Folder',
-         _orig_path=['/' + OLD_NAME, '/' + OTHER_OLD_NAME, ],
-    ),
+         _orig_path=['/' + OLD_NAME, '/' + OTHER_OLD_NAME, ]),
 )
 
-# provide a simple source for just the redirector tests
+
 class TestSource(SampleSource):
+    ''' Provide a simple source for just the redirector tests '''
     classProvides(ISectionBlueprint)
     implements(ISection)
 
     def __init__(self, *args, **kw):
         super(TestSource, self).__init__(*args, **kw)
         self.sample = SOURCE_SAMPLE
+
 
 class TransmogrifyRedirectorLayer(PloneSandboxLayer):
 
@@ -86,6 +82,7 @@ TRANSMOGRIFY_REDIRECTOR_INTEGRATION_LAYER = IntegrationTesting(
     bases=(TRANSMOGRIFY_REDIRECTOR_FIXTURE, ),
     name="TransmogrifyRedirector:Integration",
 )
+
 
 class TestTransmogrify(TestCase):
 
@@ -117,8 +114,9 @@ class TestTransmogrify(TestCase):
     def transmogrify(self):
         from collective.transmogrifier.transmogrifier import Transmogrifier
         transmogrifier = Transmogrifier(self.portal)
-        transmogrifier(TEST_PIPELINE_CONFIG)        
-        # RedirectorBlueprint logs the final count of seen and changed objects:
+        transmogrifier(TEST_PIPELINE_CONFIG)
+        # RedirectorBlueprint logs the final count of seen and changed
+        # objects:
         final_log = [
             log_record for log_record in self.handler.buffer
             # c.f.: RedirectorBlueprint.__iter__():
@@ -134,7 +132,8 @@ class TestTransmogrify(TestCase):
         self.assertEqual(len(list(self.redirector)), 0)
 
     def test_transmogrify(self):
-        # create a piece of content to pretend it was imported with the pipeline
+        # create a piece of content to pretend it was imported
+        # with the pipeline
         self.portal.invokeFactory('Folder', NEW_NAME)
         # now there should be one redirection:
         self.transmogrify()
@@ -142,11 +141,13 @@ class TestTransmogrify(TestCase):
 
     def test_no_IRedirectionStorage(self):
         self.assertEqual(len(list(self.redirector)), 0)
-        # create a piece of content to pretend it was imported with the pipeline
+        # create a piece of content to pretend it was imported with
+        # the pipeline
         self.portal.invokeFactory('Folder', NEW_NAME)
         # let's unregister the redirector:
         getSiteManager().unregisterUtility(provided=IRedirectionStorage)
-        self.assertRaises(ComponentLookupError, getUtility, IRedirectionStorage)
+        self.assertRaises(ComponentLookupError, getUtility,
+                          IRedirectionStorage)
         # This should not fail:
         self.transmogrify()
         # and obviously no redirection should be set-up:

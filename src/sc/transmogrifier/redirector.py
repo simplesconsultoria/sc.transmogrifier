@@ -1,14 +1,16 @@
-from zope.interface import classProvides, implements
-from zope.component import queryUtility
+# -*- coding:utf-8 -*-
+from collective.transmogrifier.interfaces import ISection
+from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.utils import defaultMatcher
-from collective.transmogrifier.interfaces import ISectionBlueprint, ISection
+from logging import getLogger
 from plone.app.redirector.interfaces import IRedirectionStorage
+from zope.component import queryUtility
+from zope.interface import classProvides
+from zope.interface import implements
 
 _marker = object()
-
-from logging import getLogger
-
 log = getLogger(__name__)
+
 
 class RedirectorBlueprint(object):
 
@@ -27,7 +29,8 @@ class RedirectorBlueprint(object):
 
         self.redirector = queryUtility(IRedirectionStorage)
         if self.redirector is None:
-            log.error('No IRedirectionStorage found, skipping all redirections.')
+            log.error(u'No IRedirectionStorage found, '
+                      u'skipping all redirections.')
 
     def _prepare_path(self, path):
         return self.portal_path + '/' + path.encode().lstrip('/')
