@@ -1,7 +1,7 @@
 Changelog
 ----------
 
-0.2 (unreleased)
+0.2 (2013-03-13)
 ^^^^^^^^^^^^^^^^
 
 - Allow more than one old_path [ericof]
