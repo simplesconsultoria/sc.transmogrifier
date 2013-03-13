@@ -24,6 +24,7 @@ from collective.transmogrifier.interfaces import ISectionBlueprint, ISection
 from collective.transmogrifier.sections.tests import SampleSource
 
 OLD_NAME = 'oldPath'
+OTHER_OLD_NAME = 'veryOldPath'
 NEW_NAME = 'newPath'
 TEST_SOURCE = u'sc.transmogrifier.tests.redirectorsource'
 TEST_PIPELINE_CONFIG = u"sc.transmogrifier.tests.pipeline"
@@ -40,6 +41,11 @@ SOURCE_SAMPLE = (
     # element without `_orig_path`, should be ignored
     dict(_path='/somePath',
          _type='Folder',
+    ),
+    # element with `_orig_path` as a list should be processed    
+    dict(_path='/' + NEW_NAME,
+         _type='Folder',
+         _orig_path=['/' + OLD_NAME, '/' + OTHER_OLD_NAME, ],
     ),
 )
 
@@ -132,7 +138,7 @@ class TestTransmogrify(TestCase):
         self.portal.invokeFactory('Folder', NEW_NAME)
         # now there should be one redirection:
         self.transmogrify()
-        self.assertEqual(len(list(self.redirector)), 1)
+        self.assertEqual(len(list(self.redirector)), 2)
 
     def test_no_IRedirectionStorage(self):
         self.assertEqual(len(list(self.redirector)), 0)

@@ -29,6 +29,9 @@ class RedirectorBlueprint(object):
         if self.redirector is None:
             log.error('No IRedirectionStorage found, skipping all redirections.')
 
+    def _prepare_path(self, path):
+        return self.portal_path + '/' + path.encode().lstrip('/')
+
     def getObject(self, path):
         obj = self.context.unrestrictedTraverse(path, None)
         # Weed out implicit Acquisition
@@ -46,18 +49,21 @@ class RedirectorBlueprint(object):
             # not enough info
             return
 
-        path, original_path = [
-            self.portal_path + '/' + item[key].encode().lstrip('/')
-            for key in (path_key, original_path_key)
-        ]
+        path = self._prepare_path(item[path_key])
+        original_path = item[original_path_key]
 
+        if isinstance(original_path, (str, unicode)):
+            original_path = [original_path, ]
+
+        original_path = [self._prepare_path(p) for p in original_path]
         obj = self.getObject(path)
         if obj is None:
             # path doesn't exist
             return
 
-        self.redirector.add(original_path, path)
-        self.changed_count +=1
+        for item in original_path:
+            self.redirector.add(item, path)
+        self.changed_count += 1
 
     def __iter__(self):
         for item in self.previous:
