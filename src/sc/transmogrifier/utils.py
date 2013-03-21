@@ -55,6 +55,9 @@ class MetaBluePrint(type):
         return new_class
 
 
+class NothingToDoHere(Exception):
+    pass
+
 class BluePrintBoiler(object):
     # TODO: move to a "sc.transmogrifier.utils" package
     __metaclass__ = MetaBluePrint
@@ -84,7 +87,10 @@ class BluePrintBoiler(object):
         #in a configurable maner prior to calling the
         #transmogrify method
         for item in self.previous:
-            item = self.transmogrify(item)
+            try:
+                item = self.transmogrify(item)
+            except NothingToDoHere:
+                pass
             yield item
 
     def set_options(self):
@@ -94,6 +100,15 @@ class BluePrintBoiler(object):
     def transmogrify(self, item):
         """ override me """
         return item
+
+    def get_path(self, item):
+        keys = self.pathkey(*item.keys())
+        if not keys[1]:
+            raise NothingToDoHere
+        path = item[keys[0]]
+        if not path:
+            raise NothingToDoHere
+        return path
 
 
 def blueprint(blueprint_name):
