@@ -35,10 +35,8 @@ class SetModificationDate(BluePrintBoiler):
                 yield item; continue
 
         # Commit newly created objects to  the presistence before proceeding
-        print "Start setting modification dates"
         logger.info("Start setting modification dates")
         transaction.savepoint(True)
-
         for counter, (path, modification_date) in enumerate(paths_and_dates):
             obj = context.unrestrictedTraverse(str(path).lstrip('/'), None)
             if obj is None:
