@@ -1,8 +1,13 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:zcml="http://namespaces.zope.org/zcml">
+    xmlns:grok="http://namespaces.zope.org/grok"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    i18n_domain="sc.transmogrifier">
+
 
     <include package="collective.transmogrifier" file="meta.zcml" />
+
+    <grok:grok package="." />
 
     <utility
         component=".redirector.RedirectorBlueprint"

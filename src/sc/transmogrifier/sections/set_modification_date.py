@@ -9,7 +9,7 @@ from DateTime.DateTime import DateTime
 from Products.CMFCore.utils import getToolByName
 import transaction
 
-from sc.transmogrfier import logger
+from sc.transmogrifier import logger
 from sc.transmogrifier.utils import blueprint
 from sc.transmogrifier.utils import BluePrintBoiler
 from sc.transmogrifier.utils import normalize_url
