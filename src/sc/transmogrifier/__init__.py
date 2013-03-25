@@ -1,1 +1,4 @@
-# This package may contain traces of nuts
+# coding: utf-8
+import logging
+
+logger = logging.getLogger("SC Transmogrifier")

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: João S. O. Bueno
 
-# FIXME: FACTOR THIS OUT TO A SC.TRANSMOGRIFIER.UTILS PACKAGE
-
 import sys
 import re
 import unicodedata
@@ -33,8 +31,6 @@ from zope.intid.interfaces import IIntIds
 from Acquisition import aq_inner
 
 RELATED_KEY = "_relatedItems"
-CONNECTION_NAME = "sc_transmogrifier_wordpress_sql"
-
 
 class MetaBluePrint(type):
     """
