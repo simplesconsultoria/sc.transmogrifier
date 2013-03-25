@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 import os
 
-version = '0.3.dev0'
+version = '0.4.dev0'
 
 long_description = (open("README.rst").read() + "\n" +
                     open(os.path.join("docs", "CONTRIBUTORS.txt")).read() + "\n" +
@@ -26,7 +26,7 @@ setup(name='sc.transmogrifier',
           "Programming Language :: Python"
       ],
       keywords='transmogrifier blueprint plone simplesconsultoria',
-      author='Leonardo Rochael Almeida',
+      author='Leonardo Rochael Almeida, Joao S. O. Bueno',
       author_email='LeoRochael@gmail.com',
       url='http://github.com/simplesconsultoria/sc.transmogrifier',
       license='gpl',
