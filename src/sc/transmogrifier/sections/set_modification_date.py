@@ -49,7 +49,7 @@ class SetModificationDate(BluePrintBoiler):
 
             obj.setModificationDate(DateTime(modification_date))
             context.portal_catalog.reindexObject(obj)
-            del obj.__dict__["notifyModified"]
+            obj.__dict__.pop("notifyModified", "")
             #
             # We got an exception for ZODB trying to pickle the function
             # in the instance attribute when running a large pipeline.

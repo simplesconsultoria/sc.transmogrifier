@@ -32,6 +32,7 @@ from Acquisition import aq_inner
 
 RELATED_KEY = "_relatedItems"
 
+
 class MetaBluePrint(type):
     """
         Metaclass to make classes that inherit from BluePrintBoiler
@@ -53,6 +54,7 @@ class MetaBluePrint(type):
 
 class NothingToDoHere(Exception):
     pass
+
 
 class BluePrintBoiler(object):
     # TODO: move to a "sc.transmogrifier.utils" package
