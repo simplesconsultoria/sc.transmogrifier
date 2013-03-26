@@ -53,8 +53,17 @@ class MetaBluePrint(type):
 
 
 class NothingToDoHere(Exception):
+    """
+    Raise in the transmogrify method to do nothing to an item
+    """
     pass
 
+
+class ThouShallNotPass(Exception):
+    """
+    Raise in the transmogrify method to discard an item
+    """
+    pass
 
 class BluePrintBoiler(object):
     # TODO: move to a "sc.transmogrifier.utils" package
@@ -89,6 +98,8 @@ class BluePrintBoiler(object):
                 item = self.transmogrify(item)
             except NothingToDoHere:
                 pass
+            except ThouShallNotPass:
+                continue
             yield item
 
     def set_options(self):
