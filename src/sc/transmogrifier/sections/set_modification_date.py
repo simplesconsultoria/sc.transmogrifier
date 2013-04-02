@@ -1,19 +1,12 @@
 # coding: utf-8
 # Author: Joao S. O. Bueno
 
-from zope.interface import implements, classProvides
-from Products.CMFCore.interfaces import ISiteRoot
-from Acquisition import aq_parent, aq_inner
-from Products.Archetypes.interfaces import IBaseObject
 from DateTime.DateTime import DateTime
-from Products.CMFCore.utils import getToolByName
-import transaction
-
 from sc.transmogrifier import logger
 from sc.transmogrifier.utils import blueprint
 from sc.transmogrifier.utils import BluePrintBoiler
-from sc.transmogrifier.utils import normalize_url
 
+import transaction
 
 
 @blueprint("sc.transmogrifier.utils.set_modification_date")
@@ -58,4 +51,3 @@ class SetModificationDate(BluePrintBoiler):
             #  the attribute deletion on the previous line.
             if not (counter % 50):
                 transaction.savepoint(True)
-
