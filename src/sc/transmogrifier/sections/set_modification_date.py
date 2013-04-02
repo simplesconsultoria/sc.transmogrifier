@@ -38,7 +38,8 @@ class SetModificationDate(BluePrintBoiler):
             # HACK: Disable item notification, so that
             # reindexing does not change modification dates
             # (max is used as a no-op function here)
-            # see: https://blog.isotoma.com/2011/02/setting-the-modification-date-of-an-archetype-object-in-plone/
+            # see: https://blog.isotoma.com/2011/02/setting-the-modification\
+            # -date-of-an-archetype-object-in-plone/
 
             obj.__dict__["notifyModified"] = max
             obj.setModificationDate(DateTime(modification_date))
