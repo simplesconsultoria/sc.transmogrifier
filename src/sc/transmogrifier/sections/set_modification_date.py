@@ -42,7 +42,7 @@ class SetModificationDate(BluePrintBoiler):
 
             obj.__dict__["notifyModified"] = max
             obj.setModificationDate(DateTime(modification_date))
-            context.portal_catalog.reindexObject(obj)
+            obj.reindexObject(idxs=["modified"])
             obj.__dict__.pop("notifyModified", "")
 
             # We got an exception for ZODB trying to pickle the function
