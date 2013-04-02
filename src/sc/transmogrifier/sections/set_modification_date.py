@@ -23,13 +23,14 @@ class SetModificationDate(BluePrintBoiler):
                 yield item; continue
             path = item[pathkey]
             #obj = context.unrestrictedTraverse(str(path).lstrip('/'), None)
-            if  "modification_date" in item:
+            if "modification_date" in item:
                 paths_and_dates.append((path, item["modification_date"]))
-                yield item; continue
+            yield item
 
-        # Commit newly created objects to  the presistence before proceeding
-        logger.info("Start setting modification dates")
+        # Commit newly created objects to the persistence before proceeding
         transaction.savepoint(True)
+        logger.info("Start setting modification dates")
+
         for counter, (path, modification_date) in enumerate(paths_and_dates):
             obj = context.unrestrictedTraverse(str(path).lstrip('/'), None)
             if obj is None:
