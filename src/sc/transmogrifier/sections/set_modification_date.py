@@ -41,16 +41,17 @@ class SetModificationDate(BluePrintBoiler):
             obj = context.unrestrictedTraverse(str(path).lstrip('/'), None)
             if obj is None:
                 continue
-            # Disable item notification, so that
+
+            # HACK: Disable item notification, so that
             # reindexing does not change modification dates
             # (max is used as a no-op function here)
+            # see: https://blog.isotoma.com/2011/02/setting-the-modification-date-of-an-archetype-object-in-plone/
 
             obj.__dict__["notifyModified"] = max
-
             obj.setModificationDate(DateTime(modification_date))
             context.portal_catalog.reindexObject(obj)
             obj.__dict__.pop("notifyModified", "")
-            #
+
             # We got an exception for ZODB trying to pickle the function
             # in the instance attribute when running a large pipeline.
             #  So, trying to mark the savepoints to avoid commits prior to
