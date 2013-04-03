@@ -65,6 +65,7 @@ class ThouShallNotPass(Exception):
     """
     pass
 
+
 class BluePrintBoiler(object):
     # TODO: move to a "sc.transmogrifier.utils" package
     __metaclass__ = MetaBluePrint

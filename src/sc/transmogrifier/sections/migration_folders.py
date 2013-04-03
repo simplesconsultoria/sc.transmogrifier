@@ -1,70 +1,90 @@
+# coding: utf-8
+
+# Based on collective/transmogrifier/sections/folders.py
+#
+# Adaptation to time-warping on-demand folder migration
+# by jsbueno@simplesconsultoria.com.br
+
+
+
 from zope.interface import classProvides, implements
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from collective.transmogrifier.utils import defaultMatcher
 
-class FoldersSection(object):
-    classProvides(ISectionBlueprint)
-    implements(ISection)
+from sc.transmogrifier.utils import blueprint
+from sc.transmogrifier.utils import BluePrintBoiler
+from sc.transmogrifier.utils import normalize_url
+from sc.transmogrifier.utils import NothingToDoHere, ThouShallNotPass
 
-    def __init__(self, transmogrifier, name, options, previous):
-        self.previous = previous
-        self.context = transmogrifier.context
 
-        self.pathKey = defaultMatcher(options, 'path-key', name, 'path')
+@blueprint("sc.transmogrifier.utils.migration_folders")
+class MigrationFoldersSection(BluePrintBoiler):
 
-        self.newPathKey = options.get('new-path-key', None)
-        self.newTypeKey = options.get('new-type-key', '_type')
-
-        self.folderType = options.get('folder-type', 'Folder')
-        self.cache      = options.get('cache', 'true').lower() == 'true'
-
-        self.seen       = set()
+    def set_options(self):
+        self.newPathKey = self.options.get('new-path-key', None)
+        self.newTypeKey = self.options.get('new-type-key', '_type')
+        self.folderType = self.options.get('folder-type', 'Folder')
+        self.cache = self.options.get('cache', 'true').lower() == 'true'
+        self.seen = set()
+        self.traverse = self.transmogrifier.context.unrestrictedTraverse
 
     def __iter__(self):
-
         for item in self.previous:
+            try:
+                items = self.transmogrify(item)
+            except NothingToDoHere:
+                items = [item]
+            except ThouShallNotPass:
+                continue
+            for new_item in items:
+                yield new_item
 
-            keys = item.keys()
-            pathKey = self.pathKey(*keys)[0]
+    def transmogrify(self, item):
+        traverse = self.traverse
 
-            if not pathKey: # not enough info
-                yield item; continue
+        items = []
+        path = self.get_path(item)
 
-            newPathKey = self.newPathKey or pathKey
-            newTypeKey = self.newTypeKey
+        newPathKey = self.newPathKey or self.pathkey(*item.keys())[0]
+        newTypeKey = self.newTypeKey
 
-            path = item[pathKey]
-            elems = path.strip('/').rsplit('/', 1)
-            container, id = (len(elems) == 1 and ('', elems[0]) or elems)
+        elems = path.strip('/').rsplit('/', 1)
+        container, id = (len(elems) == 1 and ('', elems[0]) or elems)
 
-            traverse = self.context.unrestrictedTraverse
+        # This may be a new container
+        if container in self.seen:
+            return [item]
 
-            # This may be a new container
-            if container not in self.seen:
+        containerPathItems = container.split('/')
+        if containerPathItems:
+            checkedElements = []
 
-                containerPathItems = container.split('/')
-                if containerPathItems:
+            # Check each possible parent folder
+            path_exists = True
+            for element in containerPathItems:
+                checkedElements.append(element)
+                currentPath = '/'.join(checkedElements)
 
-                    checkedElements = []
+                if self.cache:
+                    if currentPath in self.seen:
+                        continue
+                    self.seen.add(currentPath)
 
-                    # Check each possible parent folder
-                    for element in containerPathItems:
-                        checkedElements.append(element)
-                        currentPath = '/'.join(checkedElements)
+                if path_exists and traverse(currentPath, None) is None:
+                    # Path does not exist from here on
+                    path_exists = False
 
-                        if currentPath and currentPath not in self.seen:
+                if not path_exists:
+                    # We don't have this path - yield to create a
+                    # skeleton folder
+                    new_folder = {}
+                    new_folder[newPathKey] = '/' + currentPath
+                    new_folder[newTypeKey] = self.folderType
+                    items.append(new_folder)
 
-                            if traverse(currentPath, None) is None:
-                                # We don't have this path - yield to create a
-                                # skeleton folder
-                                yield {newPathKey: '/' + currentPath,
-                                       newTypeKey: self.folderType}
+        if self.cache:
+            self.seen.add("%s/%s" % (container, id,))
 
-                            if self.cache:
-                                self.seen.add(currentPath)
-
-            if self.cache:
-                self.seen.add("%s/%s" % (container, id,))
-
-            yield item
+        items.append(item)
+        return items
