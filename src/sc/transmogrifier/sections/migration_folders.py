@@ -12,6 +12,7 @@ from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from collective.transmogrifier.utils import defaultMatcher
 
+from sc.transmogrifier import logger
 from sc.transmogrifier.utils import blueprint
 from sc.transmogrifier.utils import BluePrintBoiler
 from sc.transmogrifier.utils import normalize_url
@@ -26,6 +27,8 @@ class MigrationFoldersSection(BluePrintBoiler):
         self.newTypeKey = self.options.get('new-type-key', '_type')
         self.folderType = self.options.get('folder-type', 'Folder')
         self.cache = self.options.get('cache', 'true').lower() == 'true'
+
+        # blueprint initialization
         self.seen = set()
         self.traverse = self.transmogrifier.context.unrestrictedTraverse
 
@@ -52,36 +55,42 @@ class MigrationFoldersSection(BluePrintBoiler):
         elems = path.strip('/').rsplit('/', 1)
         container, id = (len(elems) == 1 and ('', elems[0]) or elems)
 
-        # This may be a new container
-        if container in self.seen:
-            return [item]
 
         containerPathItems = container.split('/')
-        if containerPathItems:
-            checkedElements = []
 
-            # Check each possible parent folder
-            path_exists = True
-            for element in containerPathItems:
-                checkedElements.append(element)
-                currentPath = '/'.join(checkedElements)
+        # This may be a new container
+        if container in self.seen or not containerPathItems:
+            raise NothingToDoHere
 
-                if self.cache:
-                    if currentPath in self.seen:
-                        continue
-                    self.seen.add(currentPath)
+        checkedElements = []
 
-                if path_exists and traverse(currentPath, None) is None:
-                    # Path does not exist from here on
-                    path_exists = False
+        # Check each possible parent folder
+        path_exists = True
+        for element in containerPathItems:
+            checkedElements.append(element)
+            currentPath = '/'.join(checkedElements)
 
-                if not path_exists:
-                    # We don't have this path - yield to create a
-                    # skeleton folder
-                    new_folder = {}
-                    new_folder[newPathKey] = '/' + currentPath
-                    new_folder[newTypeKey] = self.folderType
-                    items.append(new_folder)
+            if self.cache:
+                if currentPath in self.seen:
+                    continue
+                self.seen.add(currentPath)
+
+            if path_exists and traverse(currentPath, None) is None:
+                # Path does not exist from here on
+                path_exists = False
+
+            if not path_exists:
+                # We don't have this path - yield to create a
+                # skeleton folder
+                new_folder = {}
+                new_folder[newPathKey] = '/' + currentPath
+                new_folder[newTypeKey] = self.folderType
+                # Set folder to be published if item is to be as well:
+                if "_transitions" in item:
+                    new_folder["_transitions"] = item["_transitions"]
+                logger.info("Schedulling %s folder to be created"
+                            " to contain %s" % ("/" + currentPath, path))
+                items.append(new_folder)
 
         if self.cache:
             self.seen.add("%s/%s" % (container, id,))
