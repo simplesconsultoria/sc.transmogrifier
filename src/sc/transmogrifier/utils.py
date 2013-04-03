@@ -158,11 +158,14 @@ def promote_to_unicode(item, encoding="utf-8", include_numbers=False):
 def normalize_url(url):
     # remove any acentuated character whcih is possible to remove.
     if isinstance(url, str):
+        was_unicode = False
         url = url.decode("utf-8")
+    else:
+        was_unicode = True
     url = unicodedata.normalize("NFKD", url).encode(
             'ASCII', 'ignore').decode("ASCII")
     # Allow only the characters bellow:
-    url = re.sub(u"[^a-zA-Z0-9/\-\.]", "-", url)
+    url = re.sub(u"[^a-zA-Z0-9/\-\.\_]", "-", url)
     # and url 's can't start with an underscore in Plone,
     # neither end with two underscores
     if "/" in url:
@@ -170,6 +173,8 @@ def normalize_url(url):
         url = path + u"/" + id.strip(u"_")
     else:
         url = url.strip(u"_")
+    if not was_unicode:
+        url = url.encode("ASCII")
     return url
 
 

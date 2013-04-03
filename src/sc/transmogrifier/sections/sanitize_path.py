@@ -28,6 +28,10 @@ class SanitizePath(BluePrintBoiler):
         invalid ID and paths that would make Plone explode;
         Creates a transmogrifier-wide "changed PATH" attributes
         so that other sections can find proper references to what has changed
+
+        TODO: add an option to scan the "text" field of content types
+        and normalize relative URLs in "src" and "href" references
+        so that imported items and references to them are kept in sync!
     """
 
     def __iter__(self):
