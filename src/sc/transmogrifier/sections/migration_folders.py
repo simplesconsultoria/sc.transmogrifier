@@ -17,6 +17,7 @@ from sc.transmogrifier.utils import normalize_url
 from sc.transmogrifier.utils import NothingToDoHere, ThouShallNotPass
 
 
+COCOON_KEY = "__item_encapsulated_by_sc_migration_folders"
 @blueprint("sc.transmogrifier.utils.migration_folders")
 class MigrationFoldersSection(BluePrintBoiler):
 
@@ -29,13 +30,17 @@ class MigrationFoldersSection(BluePrintBoiler):
         self.use_wormhole = ast.literal_eval(
                 self.options.get("use_wormhole", "False"))
         self.use_original_path = ast.literal_eval(
-                self.options.get("original_path", "False"))
+                self.options.get("use_original_path", "False"))
+        self.remote_fetch = ast.literal_eval(
+                self.options.get("remote_fetch", "True"))
+        self.remote_prefix = self.options.get("remote_prefix", "http://example.com")
 
         # blueprint initialization
         self.seen = set()
         self.traverse = self.transmogrifier.context.unrestrictedTraverse
 
     def __iter__(self):
+        self.count_cocoons = 0
         for item in self.previous:
             try:
                 items = self.transmogrify(item)
@@ -48,8 +53,57 @@ class MigrationFoldersSection(BluePrintBoiler):
 
     def transmogrify(self, item):
 
-        if "__item_encapsulated_by_sc_migration_folders" in item:
-            return [item["__item_encapsulated_by_sc_migration_folders"]]
+        # FIXME:
+        # Factor this out into whitehole/wormhole blueprint framework
+
+        """
+            Long history short:
+            the NITF converter pipeline we are using
+            yields the news item (or blogpost, opor wathever)
+            and them its image attribute, as a separate
+            content, in the same "yield" loop -
+            this separate content is yielded before the
+            whitehole blueprint is ever reached. (and obviously
+            there would be no container for it in this run
+            of pipeline loop).
+            So we "freeze" the other items here, and just
+            let through the things we created ourselves.
+
+            This should actually be a common scenario -
+            therefore this have to be factored
+            out and made simpler to use.
+
+        """
+        if COCOON_KEY in item:
+            self.count_cocoons -= 1
+            logger.info("Unthawning item %s to proceed on the pipeline" %
+                        item[COCOON_KEY].get("_path", "<unknown>"))
+            return [item[COCOON_KEY]]
+        if self.count_cocoons:
+            if "__time_traveler" in item:
+                # This is one of ours - let it pass!
+                item.pop("__time_traveler")
+            else:
+                wormhole = self.storage["wormhole"]
+                #some item scheduled in the pipeline trying to get ahead
+                # of our time_travelers!
+                # THAT COULD GET OUR GRANDFATHER KILLED!! DELAY IT!
+                logger.info("Delaying item %s - it will proceed the pipeline"
+                            " when the wormhole queue is emptied" %
+                            item.get("_path", "<unknown>"))
+                cocoon = {COCOON_KEY: item}
+                self.count_cocoons += 1
+                # Deques have no insert :-(
+                # we have to mangle with space time weaving itself
+                position = 0
+                while True:
+                    if  COCOON_KEY in wormhole[-1]:
+                        wormhole.append(cocoon)
+                        break
+                    position += 1
+                    wormhole.rotate(1)
+                wormhole.rotate(-position)
+                raise ThouShallNotPass
 
         traverse = self.traverse
 
@@ -59,23 +113,25 @@ class MigrationFoldersSection(BluePrintBoiler):
         newPathKey = self.newPathKey or self.pathkey(*item.keys())[0]
         newTypeKey = self.newTypeKey
 
-        elems = path.strip('/').rsplit('/', 1)
-        container, id = (len(elems) == 1 and ('', elems[0]) or elems)
+        stripped_path = path.strip("/")
+        elems = stripped_path.rsplit('/', 1)
+        container, id = elems if len(elems) > 1 else ("", elems[0])
 
+        container_path_items = container.split('/')
 
-        containerPathItems = container.split('/')
+        original_container_parts = item.get("_orig_path", "").strip("/").split("/")[:-1]
 
         # This may be a new container
-        if container in self.seen or not containerPathItems:
+        if container in self.seen or not container_path_items:
             raise NothingToDoHere
 
-        checkedElements = []
+        checked_elements = []
 
         # Check each possible parent folder
         path_exists = True
-        for element in containerPathItems:
-            checkedElements.append(element)
-            currentPath = '/'.join(checkedElements)
+        for element in container_path_items:
+            checked_elements.append(element)
+            currentPath = '/'.join(checked_elements)
 
             if self.cache:
                 if currentPath in self.seen:
@@ -86,18 +142,45 @@ class MigrationFoldersSection(BluePrintBoiler):
                 # Path does not exist from here on
                 path_exists = False
 
-            if not path_exists:
-                # We don't have this path - yield to create a
-                # skeleton folder
-                new_folder = {}
-                new_folder[newPathKey] = '/' + currentPath
-                new_folder[newTypeKey] = self.folderType
-                # Set folder to be published if item is to be as well:
-                if "_transitions" in item:
-                    new_folder["_transitions"] = item["_transitions"]
-                logger.info("Schedulling %s folder to be created"
-                            " to contain %s" % ("/" + currentPath, path))
-                items.append(new_folder)
+            if path_exists:
+                continue
+
+            # We don't have this path - yield to create a
+            # skeleton folder
+            new_folder = {}
+            new_folder[newPathKey] = '/' + currentPath
+            new_folder[newTypeKey] = self.folderType
+            # Set folder to be published if item is to be as well:
+            if "_transitions" in item:
+                new_folder["_transitions"] = item["_transitions"]
+
+            remote_url = self.remote_prefix.rstrip("/") + "/"
+            if self.remote_fetch:
+                if self.use_original_path and "_orig_path" in item:
+                    # think of it this way:
+                    # if item["_orig_path"] == "/vanishing/old/path/item"
+                    # and item["_path"] == "/new/path/item"
+                    # we need to schedule for fetching
+                    # /vanishing/old and /vanishing/old/path from the remote
+                    # (there must be some other blueprint to change
+                    # /vanishing/old to /new in the pipeline)
+
+                    # following this use case. if element == "new"
+                    index =  len(checked_elements) - len(container_path_items)
+                    # will yield "-1". we should have
+                    # original_container_parts ==["vanishing", "old", "path"]
+                    if index == 0: index = None
+                    remote_url += \
+                        "/".join(original_container_parts[:index]).lstrip("/")
+                else:
+                    remote_url += currentPath
+                # FIXME: should use the transmogrifier
+                # mechanism to target these to a specifc
+                # blueprint
+                new_folder["__remote_url_fetch"] = remote_url
+            logger.info("Schedulling %s folder to be created"
+                        " to contain %s" % ("/" + currentPath, path))
+            items.append(new_folder)
 
         if self.cache:
             self.seen.add("%s/%s" % (container, id,))
@@ -114,10 +197,13 @@ class MigrationFoldersSection(BluePrintBoiler):
             # contain other items scheduled to be build after
             # the current item. And the current item needs
             # these folders to go first:
-            cocoon = {"__item_encapsulated_by_sc_migration_folders": item}
+            cocoon = {COCOON_KEY: item}
             self.storage["wormhole"].appendleft(cocoon)
+            self.count_cocoons += 1
             for new_folder in reversed(items):
+                new_folder["__time_traveler"] = True
                 self.storage["wormhole"].appendleft(new_folder)
+
 
 
             #And...hyperjump back to the beggining of the pipeline, where
