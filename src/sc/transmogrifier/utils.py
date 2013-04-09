@@ -30,9 +30,6 @@ from zope.component import getUtility
 from zope.intid.interfaces import IIntIds
 from Acquisition import aq_inner
 
-RELATED_KEY = "_relatedItems"
-
-
 class MetaBluePrint(type):
     """
         Metaclass to make classes that inherit from BluePrintBoiler
