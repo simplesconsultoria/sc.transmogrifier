@@ -108,14 +108,23 @@ class BluePrintBoiler(object):
         """ override me """
         return item
 
-    def get_path(self, item):
-        keys = self.pathkey(*item.keys())
+    def _get_value(self, item, which):
+        # pathkey or typekey + whatever future keys:
+        getter = getattr(self, which + "key")
+        keys = getter(*item.keys())
         if not keys[1]:
             raise NothingToDoHere
-        path = item[keys[0]]
-        if not path:
+        value = item[keys[0]]
+        if not value:
             raise NothingToDoHere
-        return path
+        return value
+
+    def get_path(self, item):
+        return self._get_value(item, "path")
+
+    def get_type(self, item):
+        return self._get_value(item, "type")
+
 
 
 def blueprint(blueprint_name):
@@ -148,12 +157,15 @@ def promote_to_unicode(item, encoding="utf-8", include_numbers=False):
             sys.stderr.write("Error trying to decode %r from utf-8\n" % item)
             raise
             #item = item.decode(encoding, errors="replace")
+    elif isinstance(item, dict):
+        for key, value in list(item.items()):
+            item[key] = promote_to_unicode(value, encoding, include_numbers)
     elif include_numbers and isinstance(item, Number):
         item = unicode(item)
     return item
 
 
-def normalize_url(url):
+def normalize_url(url, strip_chars=True):
     # remove any acentuated character whcih is possible to remove.
     if isinstance(url, str):
         was_unicode = False
@@ -162,19 +174,25 @@ def normalize_url(url):
         was_unicode = True
     url = unicodedata.normalize("NFKD", url).encode(
             'ASCII', 'ignore').decode("ASCII")
-    # Allow only the characters bellow:
-    url = re.sub(u"[^a-zA-Z0-9/\-\.\_]", "-", url)
-    # and url 's can't start with an underscore in Plone,
-    # neither end with two underscores
-    if "/" in url:
-        path, id = url.rsplit(u"/", 1)
-        url = path + u"/" + id.strip(u"_")
-    else:
-        url = url.strip(u"_")
+
+    if strip_chars:
+        # Allow only the characters bellow:
+        url = re.sub(u"[^a-zA-Z0-9/\-\.\_]", "-", url)
+        # and url 's can't start with an underscore in Plone,
+        # neither end with two underscores
+        if "/" in url:
+            path, id = url.rsplit(u"/", 1)
+            url = path + u"/" + id.strip(u"_")
+        else:
+            url = url.strip(u"_")
+
     if not was_unicode:
         url = url.encode("ASCII")
+
     return url
 
+def normalize_string(string):
+    return normalize_url(string, strip_chars=False)
 
 def set_intid(obj, patch=True):
     if patch:
