@@ -24,7 +24,7 @@ class ChangePath(BluePrintBoiler):
         pathkey = self.pathkey(*item.keys())[0]
         if not self.from_regexp or not pathkey:
             raise NothingToDoHere
-        new_path = re.sub(self.from_regexp, self.to, item[pathkey])
+        new_path = re.sub(self.from_regexp, self.to, item[pathkey], count=1)
         if new_path == item[pathkey]:
             raise NothingToDoHere
         if not "_orig_path" in item:
