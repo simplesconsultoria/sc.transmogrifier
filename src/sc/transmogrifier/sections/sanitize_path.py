@@ -43,7 +43,7 @@ class SanitizePath(BluePrintBoiler):
                 yield item; continue
             path = item[pathkey]
             _id = path.rstrip("/").rsplit("/")[-1]
-            if not "id":
+            if not id:
                 id = _id
 
             # Removes accented characters from composed characters
