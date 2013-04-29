@@ -47,6 +47,7 @@ class SetModificationDate(BluePrintBoiler):
             obj.reindexObject(idxs=["modified"])
             obj.__dict__.pop("notifyModified", "")
 
+            logger.info("Mod date of %s set to %s" % (path, modification_date))
             # We got an exception for ZODB trying to pickle the function
             # in the instance attribute when running a large pipeline.
             #  So, trying to mark the savepoints to avoid commits prior to
