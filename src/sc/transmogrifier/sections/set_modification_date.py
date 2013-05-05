@@ -37,28 +37,52 @@ class SetModificationDate(BluePrintBoiler):
             obj = context.unrestrictedTraverse(str(path).lstrip('/'), None)
             if obj is None:
                 continue
+            if not creation_date and not obj.creation_date:
+                creation_date = modification_date
 
-            # HACK: Disable item notification, so that
-            # reindexing does not change modification dates
-            # (max is used as a no-op pickable function here -
-            #  it is plain python "max" - kin to "min" )
-            # see: https://blog.isotoma.com/2011/02/setting-the-modification\
-            # -date-of-an-archetype-object-in-plone/
 
-            # FIXME: still does not work if run from an interactive
-            # instance debug mode :-(
-
-            obj.__dict__["notifyModified"] = max
+            idx = []
             if modification_date:
                 obj.setModificationDate(DateTime(modification_date))
                 logger.info("Modification date of %s set to %s" %
                           (path, modification_date))
+                idx.append("modified")
+
             if creation_date:
                 obj.creation_date = DateTime(creation_date)
                 logger.info("Creation date of %s set to %s" %
                             (path, creation_date))
-            obj.reindexObject(idxs=["modified", "created"])
-            obj.__dict__.pop("notifyModified", "")
+                idx.append("created")
+
+            if not obj.effective_date:
+                obj.effective_date = obj.creation_date
+                idx.append("effective")
+
+            obj.reindexObject(idxs=idx)
 
             if not (counter % 50):
                 transaction.savepoint(True)
+
+            ## HACK: Disable item notification, so that
+            ## reindexing does not change modification dates
+            ## (max is used as a no-op pickable function here -
+            ##  it is plain python "max" - kin to "min" )
+            ## see: https://blog.isotoma.com/2011/02/setting-the-modification\
+            ## -date-of-an-archetype-object-in-plone/
+
+            ## FIXME: still does not work if run from an interactive
+            ## instance debug mode :-(
+
+            #obj.__dict__["notifyModified"] = max
+            #if modification_date:
+                #obj.setModificationDate(DateTime(modification_date))
+                #logger.info("Modification date of %s set to %s" %
+                          #(path, modification_date))
+            #if creation_date:
+                #obj.creation_date = DateTime(creation_date)
+                #logger.info("Creation date of %s set to %s" %
+                            #(path, creation_date))
+            #obj.reindexObject(idxs=["modified", "created"])
+            #obj.__dict__.pop("notifyModified", "")
+
+
