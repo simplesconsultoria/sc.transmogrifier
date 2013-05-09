@@ -88,9 +88,8 @@ class BluePrintBoiler(object):
            extra logic is needed, else, it just calls
            self.transmogrify with 'item'
         """
-        #TODO: pré-extract path-key, type-key and the object
-        #in a configurable maner prior to calling the
-        #transmogrify method
+
+        self.pre_pipeline()
         for item in self.previous:
             try:
                 item = self.transmogrify(item)
@@ -99,6 +98,8 @@ class BluePrintBoiler(object):
             except ThouShallNotPass:
                 continue
             yield item
+
+        self.post_pipeline()
 
     def set_options(self):
         """ Override to include options parsing and setting"""
@@ -124,6 +125,11 @@ class BluePrintBoiler(object):
 
     def get_type(self, item):
         return self._get_value(item, "type")
+
+    def pre_pipeline(self):
+        pass
+    def post_pipeline(self):
+        pass
 
 
 
