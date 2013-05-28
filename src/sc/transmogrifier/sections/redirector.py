@@ -1,35 +1,37 @@
 # -*- coding:utf-8 -*-
+# Original Author: Leonardo Rochael de Almeida
+# Refactored by: Joao S. O. Bueno
 
+import ast
 
-
-from collective.transmogrifier.interfaces import ISection
-from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.utils import defaultMatcher
-from logging import getLogger
 from plone.app.redirector.interfaces import IRedirectionStorage
 from zope.component import queryUtility
-from zope.interface import classProvides
-from zope.interface import implements
 
-from sc.transmogrifier import blueprint
+from sc.transmogrifier import logger
+
+from sc.transmogrifier.utils import blueprint
 from sc.transmogrifier.utils import BluePrintBoiler
 from sc.transmogrifier.utils import NothingToDoHere
 
 _marker = object()
-log = getLogger(__name__)
 
 @blueprint("sc.transmogrifier.redirector")
 class RedirectorBlueprint(BluePrintBoiler):
 
     def set_options(self):
-        self.pathKey = defaultMatcher(self.options, 'path-key', name, 'path')
         self.originalPathKey = defaultMatcher(self.options,
-                                        'orig-path-key', name, 'orig_path')
+                              'orig-path-key', self.name, 'orig_path')
+        self.assure_target_exists = ast.literal_eval(
+            self.options.get("assure-target-exists", "True"))
+        # If true, the portal path will be pre-pended to the original
+        # given path when redirecting
+        self.add_portal_name = ast.literal_eval(
+            self.options.get("add-portal-name", "True"))
 
     def pre_pipeline(self):
         self.context = self.transmogrifier.context
         self.seen_count = self.changed_count = 0
-        self.portal_path = '/'.join(self.context.getPhysicalPath())
         self.redirector = queryUtility(IRedirectionStorage)
         if self.redirector is None:
             logger.error(u'No IRedirectionStorage found, '
@@ -37,7 +39,9 @@ class RedirectorBlueprint(BluePrintBoiler):
             self.transmogrify = lambda(s, i): i
 
     def _prepare_path(self, path):
-        return self.portal_path + '/' + path.encode().lstrip('/')
+        if self.add_portal_name:
+            return self.portal_path + '/' + path.lstrip('/')
+        return path
 
     def transmogrify(self, item):
         self.seen_count += 1
@@ -45,7 +49,6 @@ class RedirectorBlueprint(BluePrintBoiler):
         if not original_path_key:
             # not enough info
             raise NothingToDoHere
-
         path = self.get_path(item)
         original_path = item[original_path_key]
 
@@ -53,7 +56,14 @@ class RedirectorBlueprint(BluePrintBoiler):
             original_path = [original_path, ]
 
         original_path = [self._prepare_path(p) for p in original_path]
-        obj = self.get_object(item)
+        if self.assure_target_exists:
+            # Bails out if can't retrieve object at item's current path:
+            if self.get_object(item, raise_=False) is None:
+                logger.warn("Ignoring item at %s - object not created" % path)
+                raise NothingToDoHere
+
+        if path.startswith("/") and not path.startswith(self.portal_path):
+            path = self.portal_path + path
 
         for item in original_path:
             self.redirector.add(item, path)

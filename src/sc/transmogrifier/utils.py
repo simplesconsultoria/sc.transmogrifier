@@ -73,6 +73,7 @@ class BluePrintBoiler(object):
         self.name = name
         self.options = options
         self.previous = previous
+        self.portal_path = make_path(transmogrifier.context)
         self.typekey = defaultMatcher(options, 'type-key', name, 'type',
             ('portal_type', 'Type'))
         self.pathkey = defaultMatcher(options, 'path-key', name, 'path')
@@ -138,10 +139,11 @@ class BluePrintBoiler(object):
 
     def get_object(self, item, raise_=True):
         path = self.get_path(item)
-        obj = self.context.unrestrictedTraverse(path, None)
+        if path.startswith("/") and not path.startswith(self.portal_path):
+            path = self.portal_path + path
+        obj = self.transmogrifier.context.unrestrictedTraverse(path, None)
         # Weed out implicit Acquisition
-        if obj is not None and '/'.join(obj.getPhysicalPath()) != path:
-            # logger.warn("Ignoring %s: path doesn't match %s", obj, path)
+        if obj is not None and make_path(obj) != path:
             obj = None
         if obj is None and raise_:
             raise NothingToDoHere
@@ -162,6 +164,9 @@ def blueprint(blueprint_name):
         return cls
     return deco
 
+
+def make_path(obj):
+    return '/'.join(obj.getPhysicalPath())
 
 def promote_to_unicode(item, encoding="utf-8", include_numbers=False):
     if (hasattr(item, "__len__") or hasattr(item, "__iter__")) and \
