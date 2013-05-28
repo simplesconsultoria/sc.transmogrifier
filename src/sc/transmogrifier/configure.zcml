@@ -9,9 +9,4 @@
 
     <grok:grok package="." />
 
-    <utility
-        component=".redirector.RedirectorBlueprint"
-        name="sc.transmogrifier.redirector"
-        />
-
 </configure>

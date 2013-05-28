@@ -109,29 +109,43 @@ class BluePrintBoiler(object):
         """ override me """
         return item
 
-    def _get_value(self, item, which):
+    def _get_value(self, item, which, raise_=True):
         # pathkey or typekey + whatever future keys:
         getter = getattr(self, which + "key")
         keys = getter(*item.keys())
         if not keys[1]:
-            raise NothingToDoHere
+            if raise_:
+                raise NothingToDoHere
+            return None
         value = item[keys[0]]
         if not value:
-            raise NothingToDoHere
+            if raise_:
+                raise NothingToDoHere
+            return None
         return value
 
-    def get_path(self, item):
+    def get_path(self, item, raise_=True):
         return self._get_value(item, "path")
 
-    def get_type(self, item):
+    def get_type(self, item, raise_=True):
         return self._get_value(item, "type")
 
     def pre_pipeline(self):
         pass
+
     def post_pipeline(self):
         pass
 
-
+    def get_object(self, item, raise_=True):
+        path = self.get_path(item)
+        obj = self.context.unrestrictedTraverse(path, None)
+        # Weed out implicit Acquisition
+        if obj is not None and '/'.join(obj.getPhysicalPath()) != path:
+            # logger.warn("Ignoring %s: path doesn't match %s", obj, path)
+            obj = None
+        if obj is None and raise_:
+            raise NothingToDoHere
+        return obj
 
 def blueprint(blueprint_name):
    # TODO: move to a "sc.transmogrifier.utils" package
