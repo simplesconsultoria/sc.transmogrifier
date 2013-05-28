@@ -211,3 +211,39 @@ def set_intid(obj, patch=True):
     if patch:
         five.intid.keyreference.aq_iter = original_func
     return int_id
+
+# XXX: Refactor somewhere else
+def transition_from_history(item, target_workflow="simple_publication_workflow"):
+    # Add hoc fix due to attributing the "workflow_history"
+    # to the object not working for the final workflow state
+    # of dexterity types
+    # In time: the correct fix would involve debugging why
+    # setting the workflow_history to the item does not publish it,
+    # (See collective.jsonmigrator.workflowhistory blueprint -
+    # but its buggy and skipping dexterity contents right now.
+    # making it not skip the item, does no better to publish it
+    # either)
+
+    """
+    Sample _workflow_history entry:
+    "_workflow_history": {"simple_publication_workflow":
+    [{"action": null, "review_state": "private",
+     "actor": "admin", "comments": "",
+     "time": "2012/03/01 14:38:38.585 GMT-3"},
+     {"action": "publish", "review_state": "published",
+     "actor": "admin", "comments": "",
+     "time": "2012/03/01 14:38:39.572 GMT-3"}]}
+    """
+    if ("_workflow_history" in item and
+             target_workflow in item["_workflow_history"]):
+        transitions = (item["_workflow_history"]
+            [target_workflow])
+        if transitions[-1]["review_state"] == "published":
+            item["_transitions"] = "publish"
+            # Since we are at it, pick the "published date"
+            # to the datefixer blueprint, just in case:
+            published = transitions[-1].get("time", "")
+            if published:
+                item["_published_date"] = published.split()[0]
+
+    return item
