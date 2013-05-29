@@ -46,7 +46,6 @@ class RedirectorBlueprint(BluePrintBoiler):
 
         return self.portal_path + '/' + path.lstrip('/')
 
-
     def transmogrify(self, item):
         self.seen_count += 1
         original_path_key = self.originalPathKey(*item.keys())[0]
@@ -70,7 +69,8 @@ class RedirectorBlueprint(BluePrintBoiler):
             path = self.portal_path + path
 
         for original_path in original_paths:
-            self.redirector.add(original_path, path)
+            if original_path != path:
+                self.redirector.add(original_path, path)
 
         self.changed_count += 1
         return item
