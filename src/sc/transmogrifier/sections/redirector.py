@@ -54,12 +54,12 @@ class RedirectorBlueprint(BluePrintBoiler):
             # not enough info
             raise NothingToDoHere
         path = self.get_path(item)
-        original_path = item[original_path_key]
+        original_paths = item[original_path_key]
 
         if isinstance(original_path, basestring):
-            original_path = [original_path, ]
+            original_paths = [original_paths, ]
 
-        original_path = [self._prepare_path(p) for p in original_path]
+        original_paths = [self._prepare_path(p) for p in original_paths]
         if self.assure_target_exists:
             # Bails out if can't retrieve object at item's current path:
             if self.get_object(item, raise_=False) is None:
@@ -69,8 +69,9 @@ class RedirectorBlueprint(BluePrintBoiler):
         if path.startswith("/") and not path.startswith(self.portal_path):
             path = self.portal_path + path
 
-        for item in original_path:
-            self.redirector.add(item, path)
+        for original_path in original_paths:
+            self.redirector.add(original_path, path)
+
         self.changed_count += 1
         return item
 
