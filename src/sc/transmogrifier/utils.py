@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 # Author: João S. O. Bueno
 
-import sys
+import ast
+from pprint import pformat
 import re
+import sys
 import unicodedata
 
 from numbers import Number
@@ -29,6 +31,8 @@ from zope.interface.declarations import directlyProvides
 from zope.component import getUtility
 from zope.intid.interfaces import IIntIds
 from Acquisition import aq_inner
+
+from sc.transmogrifier import logger
 
 class MetaBluePrint(type):
     """
@@ -102,9 +106,47 @@ class BluePrintBoiler(object):
 
         self.post_pipeline()
 
+    OPTIONS = ()
+
     def set_options(self):
-        """ Override to include options parsing and setting"""
-        pass
+        """Scans the class "OPTIONS" attribute for blueprint options
+
+         Set the options as a list of 1, 2,  3- or 4-tuple
+         with each option: name, default_value, and
+         type - one of "string"(default), "literal" and
+         documentation string
+         TODO: generate blueprint docs from option docs.
+
+         Each "_" on the option name will accept either "_" or "-"
+         literals in the transmogrifier.cfg  file
+         """
+
+        options = self.__class__.OPTIONS
+
+        # Normalize options withdefault values:
+        options = [(opt[0], None, "string", "") if len(opt) == 1 else
+                   (opt[0], opt[1], "string", "") if len(opt) == 2 else
+                   (opt[0], opt[1], opt[2], "") if len(opt) == 3 else
+                   (opt[0], opt[1], opt[2], opt[3])
+                                                 for opt in options]
+        set_options = {}
+        for name, default, type_, doc in options:
+            value = self.options.get(name,
+                self.options.get(name.replace("_", "-"), default))
+            if type_ == "literal":
+                value = ast.literal_eval(value)
+            set_options[name] = value
+        logger.info("Transmogrifier section %s configured with options:\n %s"
+            % (self.name, pformat(set_options)))
+
+        for opt_name, value in sorted(set_options.items()):
+            if hasattr(self, opt_name):
+                logger.error("Attention: Blueprint object in "
+                    "section %s already has an attribute named %s - "
+                    "overriding with option value %s - but this is "
+                    "probably broken" % (self.name, opt_name, value))
+            setattr(self, opt_name, value)
+
 
     def transmogrify(self, item):
         """ override me """
