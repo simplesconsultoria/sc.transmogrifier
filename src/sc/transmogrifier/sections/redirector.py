@@ -55,7 +55,7 @@ class RedirectorBlueprint(BluePrintBoiler):
         path = self.get_path(item)
         original_paths = item[original_path_key]
 
-        if isinstance(original_path, basestring):
+        if isinstance(original_paths, basestring):
             original_paths = [original_paths, ]
 
         original_paths = [self._prepare_path(p) for p in original_paths]
