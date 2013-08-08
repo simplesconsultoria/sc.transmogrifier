@@ -133,7 +133,7 @@ class BluePrintBoiler(object):
         for name, default, type_, doc in options:
             value = self.options.get(name,
                 self.options.get(name.replace("_", "-"), default))
-            if type_ == "literal":
+            if type_ == "literal" and isinstance(value, basestring):
                 value = ast.literal_eval(value)
             set_options[name] = value
         logger.info("Transmogrifier section %s configured with options:\n %s"
