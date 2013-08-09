@@ -185,7 +185,9 @@ class BluePrintBoiler(object):
             path = self.portal_path + path
         obj = self.transmogrifier.context.unrestrictedTraverse(path, None)
         # Weed out implicit Acquisition
-        if obj is not None and make_path(obj) != path:
+        actual_path = make_path(obj)
+        if obj is not None and (actual_path != path and
+            actual_path !=  self.portal_path + "/" + path.strip("/")):
             obj = None
         if obj is None and raise_:
             raise NothingToDoHere
