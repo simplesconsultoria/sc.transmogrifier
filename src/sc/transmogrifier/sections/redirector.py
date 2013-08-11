@@ -41,6 +41,9 @@ class RedirectorBlueprint(BluePrintBoiler):
     def _prepare_path(self, path):
         #Hack - dropping the first path component, and changing it for the
         # portal path:
+        if path.startswith(self.portal_path):
+            # nothing to change
+            return path
         if not self.add_portal_name:
             path = path.lstrip("/").split("/",1)[-1]
 
@@ -65,8 +68,8 @@ class RedirectorBlueprint(BluePrintBoiler):
                 logger.warn("Ignoring item at %s - object not created" % path)
                 raise NothingToDoHere
 
-        if path.startswith("/") and not path.startswith(self.portal_path):
-            path = self.portal_path + path
+        if not path.startswith(self.portal_path):
+            path = self.portal_path + "/" +  path.lstrip("/")
 
         for original_path in original_paths:
             if original_path != path:
