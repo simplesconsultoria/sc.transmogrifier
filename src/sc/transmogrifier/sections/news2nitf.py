@@ -45,6 +45,8 @@ class News2NITF(BluePrintBoiler):
         self.section_names = ast.literal_eval(self.options.get(
             "section_names", """("Politics", "Society", "Opinion")"""))
         from_types = self.options.get("from_types", "")
+        self.ignore_embeded_images = ast.literal_eval(self.options.get(
+            "ignore_embeded_images", "True"))
         if from_types:
             self.from_types = [x.strip() for x in from_types.split(",") if x]
         else:
