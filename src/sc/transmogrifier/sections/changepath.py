@@ -10,9 +10,12 @@ from sc.transmogrifier.utils import NothingToDoHere
 
 @blueprint("sc.transmogrifier.utils.changepath")
 class ChangePath(BluePrintBoiler):
-    """
-    Aplies a regular expression substituion on the item path
-    """
+    """Aplies a regular expression substitution on the item path"""
+
+    #TODO: Use the new style for setting blueprint
+    # options and getting the pathkey
+
+
     def set_options(self):
         # not decoding from utf-8 - paths
         # can't contain any non-ascii characters.

@@ -20,6 +20,23 @@ from sc.transmogrifier.utils import NothingToDoHere, ThouShallNotPass
 COCOON_KEY = "__item_encapsulated_by_sc_migration_folders"
 @blueprint("sc.transmogrifier.utils.migration_folders")
 class MigrationFoldersSection(BluePrintBoiler):
+    """Retrieves and puts Container items on the pipeline
+
+    When retrieving specific content types, often the folders
+    or other contents for our conte-types are not in place yet.
+    While collective.transmogrifier.sections.folders does a good job
+    of creating id-only blank folders for our items. This however,
+    fetches the full data on the yet-unseen containers and put them
+    in the pipeline. Optionally it can make an
+    extensive use of sc.transmogrifier.whitehole to make the containers
+    complete the pipeline _before_ the current Item.
+
+    Currently this pipeline depends on another blueprint to consume
+    the "__remote_url_fetch" key it puts on new container items
+    to actually retrieve that item data. sc.transmogrifier.utils.remotefetcher
+    does that, but it is hardwired to a pipeline using collective.jsonmigrator
+
+    """
 
     def set_options(self):
         self.newPathKey = self.options.get('new-path-key', None)
@@ -33,7 +50,7 @@ class MigrationFoldersSection(BluePrintBoiler):
                 self.options.get("use_original_path", "False"))
         self.remote_fetch = ast.literal_eval(
                 self.options.get("remote_fetch", "True"))
-        self.remote_prefix = self.options.get("remote_prefix", "http://example.com")
+        self.remote_prefix = self.options.get("remote_prefix", "http://plone.org")
 
         # blueprint initialization
         self.seen = set()
@@ -52,10 +69,6 @@ class MigrationFoldersSection(BluePrintBoiler):
                 yield new_item
 
     def transmogrify(self, item):
-
-        # FIXME:
-        # Factor this out into whitehole/wormhole blueprint framework
-
         """
             Long history short:
             the NITF converter pipeline we are using
@@ -74,6 +87,12 @@ class MigrationFoldersSection(BluePrintBoiler):
             out and made simpler to use.
 
         """
+
+
+        # FIXME:
+        # Factor this out into whitehole/wormhole blueprint framework
+
+
         if COCOON_KEY in item:
             self.count_cocoons -= 1
             logger.info("Unthawning item %s to proceed on the pipeline" %
@@ -151,6 +170,11 @@ class MigrationFoldersSection(BluePrintBoiler):
             new_folder[newPathKey] = '/' + currentPath
             new_folder[newTypeKey] = self.folderType
             # Set folder to be published if item is to be as well:
+            # FIXME - maybe check the "_review_state" key
+            # rather than "_transitions" /
+            # even further - have a *utils function to ensure
+            # proper "_transitons" and "_review_state"
+            # from a _workflow_history item key.
             if "_transitions" in item:
                 new_folder["_transitions"] = item["_transitions"]
 

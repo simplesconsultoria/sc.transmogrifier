@@ -11,7 +11,17 @@ import transaction
 
 @blueprint("sc.transmogrifier.utils.set_modification_date")
 class SetModificationDate(BluePrintBoiler):
+    """Restores/sets cration and modification dates
 
+    When performing a migration it is needed to keep the last
+    modificati0on date of a content item - by default,
+    what happens is that the timestamp of the import pipleine-run
+    is set as modification - and even creation - date for all objects;
+
+    This sets the modification and creation date for those on
+    the proper fields on the item - working around plone tendency
+    to not allow one to set the mod. date.
+    """
     def __iter__(self):
         context = self.transmogrifier.context
         paths_and_dates = []

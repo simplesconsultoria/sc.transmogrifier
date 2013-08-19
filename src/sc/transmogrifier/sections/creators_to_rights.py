@@ -11,8 +11,13 @@ from sc.transmogrifier.utils import NothingToDoHere
 
 @blueprint("sc.transmogrifier.utils.creators_to_rights")
 class ChangePath(BluePrintBoiler):
+    """Copies the "Creator" fields to "Rights" - used in some content types
+
+
     """
-    """
+
+    #TODO: Use the new stule for setting options
+
     def set_options(self):
         self.from_ = self.options.get("from", "creators")
         self.to = self.options.get("to", "rights")

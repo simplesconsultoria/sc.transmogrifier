@@ -16,9 +16,10 @@ from sc.transmogrifier.utils import ThouShallNotPass, NothingToDoHere
 
 @blueprint("sc.transmogrifier.universal_uid_updater")
 class UniversalUIDUpdater(BluePrintBoiler):
-    """
+    """Sets UID for both AT and DX content types
+
     The UID blueprint in collective.transmogrifier
-    can't deal withdexterity content.
+    can't deal with dexterity content.
 
     Other possible exiting blueprints can't deal with
     ATContent.

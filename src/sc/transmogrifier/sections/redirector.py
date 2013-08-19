@@ -18,7 +18,26 @@ _marker = object()
 
 @blueprint("sc.transmogrifier.redirector")
 class RedirectorBlueprint(BluePrintBoiler):
+    """Provides redirection to the original path of a content-item
 
+    When migrating a large site, it is common that items sitting in a
+    URL shouldmoe to another section or structure. This automatically
+    redirects the original item PATH to the new location -
+    provided the original path is in the item The default key is "_orig_path"
+
+    and it can be placed there with the blueprint, configured like this in
+    the beggining of a pipeline:
+
+    [orig-path]
+    blueprint = collective.transmogrifier.sections.inserter
+    key = string:_orig_path
+    value = python: item.get('_path', '')
+    condition = python: not "_orig_path" in item and "_path" in item
+
+    """
+
+
+    # TODO: refactor to use the new options system
     def set_options(self):
         self.originalPathKey = defaultMatcher(self.options,
                               'orig-path-key', self.name, 'orig_path')

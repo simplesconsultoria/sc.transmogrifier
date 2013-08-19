@@ -14,7 +14,19 @@ from sc.transmogrifier.utils import NothingToDoHere, ThouShallNotPass
 
 @blueprint("sc.transmogrifier.utils.asciify")
 class SimplesFieldASCIIFicator(BluePrintBoiler):
+    """Blueprint to ensure one or more field contents are ASCII only
 
+    Certain Plone fields, even as of 4.3 still can't deal with
+    anything but ASCII -  shame on Plone - and some fields can have
+    their content presented either as a sequence or a string. This
+    preserves teh field-data structure, while removing any NON-ASCII
+    chars. By default, unicode techniques to remove accented letters,
+    leaving the letters in place is used. e.g. "Maçã" -> "Maca"
+
+    """
+
+    # TODO: use the new options style
+    # TODO: apply to all item types by default.
     def set_options(self):
         self.types = set(x.strip()
                       for x in self.options.get("types", "").split(",")

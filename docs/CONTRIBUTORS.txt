@@ -6,6 +6,6 @@ Development of this product was sponsored by :
 
 Credits
 ------------
-
-    * Leonardo Rochael Almeida, author
+    * João S. O. Bueno, author
+    * Leonardo Rochael Almeida, author for original "redirector" blueprint
     * Erico Andrei, packaging

@@ -22,19 +22,18 @@ from sc.transmogrifier.utils import normalize_url
 
 from sc.transmogrifier import logger
 
-
-
 @blueprint("sc.transmogrifier.utils.pick_images_from_content")
 class PickImagesFromContent(BluePrintBoiler):
-    """
+    """ Gets <img> reference from text bodies of content items
+
     Parses the item "text" field, and for any HTML image reference,
     retrieves it from the web* and put it as an item on the pipeline
     """
-    # *  (when refactoring for other
-    #projects, may flexibilize the image source, like
-    #picking from the filesystem, or
-    #def transmogrify(item):
-        #return item
+    # TODO: this blueprint is "hardcoded" to fetch referenced images
+    # from a remte web site or a collective.jsonnify equiped plone site.
+    # it sh0uld be refactored to allow for generic data-sources
+
+    # TODO: refactor for new options setting style
     def set_options(self):
         self.from_types = set(x.strip() for x in
                            self.options.get("from_types", "").split(",")
@@ -250,7 +249,7 @@ def _strip_view(url):
     ('http://toras.tangrama.com.br:8081/revistadobrasil/blabla.JPG', True)
     >>> _strip_view("http://toras.tangrama.com.br:8081/revistadobrasil")
     ('http://toras.tangrama.com.br:8081/revistadobrasil', False)
-    """
+    """ #noqa
     original = url
     it_worked = False
     p3 = ""
@@ -259,8 +258,11 @@ def _strip_view(url):
             p1, p2 = url.rsplit("/", 1)
         except ValueError:
             return original, it_worked
-        if p2.rsplit(".",1)[-1].lower() in {"jpg", "jpeg", "gif", "png",
-                "tif", "tiff", "bmp", "svg", "webp"}:
+        # FIXME: allow alternative for not named-as-file images
+        if p2.rsplit(".",1)[-1].lower() in {
+                "jpg", "jpeg", "gif", "png",
+                "tif", "tiff", "bmp", "svg", "webp",
+                }:
             it_worked = True
         elif p2.startswith("resolveuid"):
             url += "/" + p3

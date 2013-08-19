@@ -11,13 +11,16 @@ from sc.transmogrifier.utils import NothingToDoHere
 
 @blueprint("sc.transmogrifier.utils.decode_datafields")
 class DataFields(BluePrintBoiler):
-    """ collective.jsonmigrator.datafields blueprint decodes binary
+    """In pipeline JSON binary field expander
+
+    collective.jsonmigrator.datafields blueprint decodes binary
     datafields alright - but only after the objects are already
     constructed. This does the decoding on the pipeline, so that it works
     even if the object is not constructed - and so that other blueprints
     can modify the binary fields before constructing as well
     (like separating an image-field from a News Item into
     a separate image object)
+
     """
 
     OPTIONS = [("datafield_prefix", "_datafield_")]

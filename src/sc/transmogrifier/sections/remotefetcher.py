@@ -24,6 +24,18 @@ from sc.transmogrifier.utils import NothingToDoHere, ThouShallNotPass
 
 @blueprint("sc.transmogrifier.utils.remotefetcher")
 class RemoteFetcher(BluePrintBoiler):
+    """Retrieves a single item from a remote site with collective.jsonify
+
+    collective.jsonmigrator has blueprints to fetch the whole content of
+    a site using collective.jsonify - this blueprint, hoever, given a
+    remote path, will retrieve a single item and put it on the pipeline.
+
+    Very usefull when you find-out  remote items during an import,
+    like items referecned by others already fetched and so on.
+
+    """
+
+    # TODO: use the new option setting mechanism
 
     def set_options(self):
         self.json_posfix = self.options.get("json_posfix", "get_item")

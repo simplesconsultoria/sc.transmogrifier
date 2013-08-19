@@ -28,6 +28,13 @@ def normalize_name(name):
 
 @blueprint("sc.transmogrifier.utils.news2nitf")
 class News2NITF(BluePrintBoiler):
+    """Converts Content Types to collective.nitf.content"""
+
+
+    # TODO: use sc.transmogrifier whitehole system to optionally
+    # send retrieved images to the beggning of the pipeline.
+    # TODO: Use the new option-setting system
+
 
     def set_options(self):
         self.nitf_language = self.options.get("nitf-language", "en")
@@ -123,6 +130,7 @@ class News2NITF(BluePrintBoiler):
             image["image"] = item["image"]["data"]
             del item["image"]
             logger.info("Yielding separate image for item at %s" % path)
+
 
         return item, image
 

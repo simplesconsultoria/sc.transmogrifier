@@ -14,16 +14,18 @@ from sc.transmogrifier import logger
 @blueprint("sc.transmogrifier.utils.set_intid")
 class SetIntId(BluePrintBoiler):
     """
-    In order to be a target to a related item field, an object has to have
+    In order to be a target to a dexterity related item field, an object has to have
     an "IntId". It  is created by objects created in the GUI, but not for
     objects created with the constructor, updater and reindex blueprints.
 
     This should be used next to them (after constructor, of course)
 
-    Objetcs that already have an intid are not affectd by this call -
+    Objects that already have an intid are not affectd by this call -
     the inner "intids.register" call just returns the existing
     int_id
     """
+
+    # TODO: refactor to use the "transmogrify" method overriding schema
 
     def __iter__(self):
         context = self.transmogrifier.context
@@ -46,7 +48,7 @@ def set_intid(obj, patch=True):
         import five.intid.keyreference
         # This is a bogus "verifier" function that does not:
         original_func = five.intid.keyreference.aq_iter
-        five.intid.keyreference.aq_iter = lambda obj, *bla, **blabla: [obj]
+        five.intid.keyreference.aq_iter = lambda obj, *foo, **foobar: [obj]
     intids = getUtility(IIntIds)
     int_id = intids.register(aq_inner(obj))
     if patch:

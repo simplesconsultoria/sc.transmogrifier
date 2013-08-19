@@ -23,7 +23,8 @@ def get_plone_root(ctx):
 
 @blueprint("sc.transmogrifier.utils.sanitize_path")
 class SanitizePath(BluePrintBoiler):
-    """
+    """Cleans up IDs and Paths keeping information about the changes
+
         Remove strange charaters or otherwise
         invalid ID and paths that would make Plone explode;
         Creates a transmogrifier-wide "changed PATH" attributes
@@ -32,6 +33,7 @@ class SanitizePath(BluePrintBoiler):
         TODO: add an option to scan the "text" field of content types
         and normalize relative URLs in "src" and "href" references
         so that imported items and references to them are kept in sync!
+
     """
 
     def __iter__(self):

@@ -8,6 +8,7 @@ Overview
 --------
 
 This package contains a collection of `collective.transmogrifier` blueprints
+and utility functions and clas mixins for using with transmogrifier pipelines
 by Simples Consultoria.
 
 Requirements
@@ -15,7 +16,6 @@ Requirements
 
     - Plone >=4.2.x (http://plone.org/products/plone)
     - collective.transmogrifier
-    - plone.app.redirector
 
 Installation
 ------------
@@ -28,7 +28,7 @@ To enable this product,on a buildout based installation:
         [buildout]
         ...
         eggs =
-            sc.forumpermanente.site
+            sc.transmogrifier
 
 
 After updating the configuration you need to run the ''bin/buildout'',
