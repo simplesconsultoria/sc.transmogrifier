@@ -55,7 +55,7 @@ class RedirectorBlueprint(BluePrintBoiler):
         if self.redirector is None:
             logger.error(u'No IRedirectionStorage found, '
                       u'skipping all redirections.')
-            self.transmogrify = lambda(s, i): i
+            self.transmogrify = lambda i: i
 
     def _prepare_path(self, path):
         #Hack - dropping the first path component, and changing it for the
@@ -103,3 +103,4 @@ class RedirectorBlueprint(BluePrintBoiler):
                  self.changed_count,
                  extra=dict(seen_count=self.seen_count,
                             changed_count=self.changed_count))
+        print "*" * 500, self.seen_count, self.changed_count

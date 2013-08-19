@@ -99,19 +99,19 @@ class TestTransmogrify(TestCase):
         self.new_path = portal_path + '/' + NEW_NAME
         # capture all the logs of the pipeline section
         self.handler = logging.handlers.BufferingHandler(sys.maxint)
-        from sc.transmogrifier.redirector import log
+        from sc.transmogrifier.sections.redirector import logger as log
         log.addHandler(self.handler)
         self._old_log_level = log.level
         log.setLevel(1)
 
     def tearDown(self):
-        from sc.transmogrifier.redirector import log
+        from sc.transmogrifier.sections.redirector import logger as log
         log.removeHandler(self.handler)
         self.handler.flush()
         log.level = self._old_log_level
         super(TestTransmogrify, self).tearDown()
 
-    def transmogrify(self):
+    def transmogrify(self, ignore_seen=False):
         from collective.transmogrifier.transmogrifier import Transmogrifier
         transmogrifier = Transmogrifier(self.portal)
         transmogrifier(TEST_PIPELINE_CONFIG)
@@ -122,7 +122,8 @@ class TestTransmogrify(TestCase):
             # c.f.: RedirectorBlueprint.__iter__():
             if getattr(log_record, 'changed_count', None) is not None
         ][-1]
-        self.assertEqual(final_log.seen_count, len(SOURCE_SAMPLE))
+        if not ignore_seen:
+            self.assertEqual(final_log.seen_count, len(SOURCE_SAMPLE))
         return final_log
 
     def test_transmogrify_no_content(self):
@@ -149,6 +150,6 @@ class TestTransmogrify(TestCase):
         self.assertRaises(ComponentLookupError, getUtility,
                           IRedirectionStorage)
         # This should not fail:
-        self.transmogrify()
+        self.transmogrify(ignore_seen=True)
         # and obviously no redirection should be set-up:
         self.assertEqual(len(list(self.redirector)), 0)
