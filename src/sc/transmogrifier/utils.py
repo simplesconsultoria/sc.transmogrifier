@@ -10,18 +10,6 @@ import unicodedata
 from numbers import Number
 
 from zope.component import provideUtility
-#from zope.interface import implements, classProvides
-#from collective.transmogrifier.interfaces import ISection, ISectionBlueprint
-
-# as of 0.8b2, SQLAlchemy is crashimnng no stop
-# reverting to pure mysql, just to get tehe job done
-
-# We can even aford for a couple connections
-# whenever the pipeline is run :-)  )
-#from z3c.sqlalchemy import createSAWrapper
-#from z3c.sqlalchemy.util import registerSAWrapper
-#from z3c.sqlalchemy.util import getSQLAlchemyWrapper
-
 from collective.transmogrifier.utils import defaultMatcher
 from collective.transmogrifier.interfaces import ISection, ISectionBlueprint
 from zope.annotation.interfaces import IAnnotations
@@ -68,7 +56,53 @@ class ThouShallNotPass(Exception):
 
 
 class BluePrintBoiler(object):
-    # TODO: move to a "sc.transmogrifier.utils" package
+    """Base class for creating blueprints
+
+    features tons of niceties. When looking at transmogrifier blueprints
+    in other packages the first thing one perceives is a lot of recurring code -
+    to retrieve the path key, the item corresponding object
+    if it is already comitted - and even the __iter__ method itself,
+    since the goodies are nested an uneeded degree within
+     the generator "for" loop.
+
+     This and the related code ains to make creating a new blueprint
+     as simple a task as possible - just decorate the class with
+     the "blueprint" decorator and mark this as the base class
+     (both things are needed due to the way grok works)
+
+     Then, for the simplest cases, just override the "transmogrify"
+     method. Use "self.get_path(item)", self.get_type(item) and
+     "self.get_object(item)" to properly retrieve these data, or have
+     your blueprint gracefully bypassed, as these methods raise a
+     'NothingToHere'exception - the pipeline just goes on.
+
+     Also, raise NothingToDohere if upon inspecting an item your find out
+     no actions are to be taken, and raise "ThouShallNotPass" if you
+     find out an item should be removed from the pipeline altogether
+
+     You can declare an "OPTIONS" class-attibute, consiting of a list
+     of tuples to define the configuration parameters
+     of your blueprint..
+
+     For each item in the OPTIONS, the first element is used
+     as the option element (and the corresponding attribute is set
+     on the object when the pipeline is running) - also the option with
+     this name  can be overriden in the pipeline .cfg file (either as is,
+     or using "-"s instead of "_"s)
+
+     Other interesting methods to be overriden are "pre_pipeline"  and
+     "post_pipeline" they are run before and after all items in
+     "self.previous" are runthough the pipeline. Usefull things there,
+     are, for examle, creation of specialized loggers (which record,say just
+     an item's Path to a txt file) and other  acountant stuff.
+
+     Also "self.storage" is a dictionarylike attribute wich stores it's
+     data the proper way in the transmgrifier's annotations. It is a nice
+     way of passing data in parallell to the pipeline to other blueprints.
+
+
+    """
+
     __metaclass__ = MetaBluePrint
     _abstract = True
 
@@ -199,7 +233,14 @@ class BluePrintBoiler(object):
         return obj
 
 def blueprint(blueprint_name):
-   # TODO: move to a "sc.transmogrifier.utils" package
+    """Class decorator for defining blueprints
+
+    With this in place, one at once declares the blueprint name
+    before the code  - instead of having to call
+    "zope.component.provideUtility(<myclass>, "blueprint.name")
+    after the class declaration. (Gone are the days of Python 2.3
+    when there where no decorators)
+    """
     def deco(cls):
         # misteries of the groks and its interfaces:
         # these two calls here should supress the need of
@@ -215,9 +256,19 @@ def blueprint(blueprint_name):
 
 
 def make_path(obj):
+    """Most used pattern in Plone to create the path to a content-item
+    """
     return '/'.join(obj.getPhysicalPath())
 
 def promote_to_unicode(item, encoding="utf-8", include_numbers=False):
+    """Seamlessly decodes all byte-strings in a data-structure to unicode
+
+    Walk nested struvtures with unicode-strings/byte-strings/tuples/
+    lists/dicts and promotes all found strings in a safe-way to unicode.
+    Setting "include numbers" will render any Number found to an
+    unicode decimal representation of it.
+
+    """
     if (hasattr(item, "__len__") or hasattr(item, "__iter__")) and \
         not isinstance(item, (str, unicode, dict, set)):
         item = list(item)
@@ -240,7 +291,11 @@ def promote_to_unicode(item, encoding="utf-8", include_numbers=False):
 
 
 def normalize_url(url, strip_chars=True):
-    # remove any acentuated character whcih is possible to remove.
+    """Removes any acentuated character which is possible to remove
+
+    Other invalid URL chars are silently replaced by "-"
+    """
+
     if isinstance(url, str):
         was_unicode = False
         url = url.decode("utf-8")
@@ -282,6 +337,9 @@ def set_intid(obj, patch=True):
 
 # XXX: Refactor somewhere else
 def transition_from_history(item, target_workflow="simple_publication_workflow"):
+    """Parses the "_workflow_history"  item entry for the final object state"
+
+    """
     # Add hoc fix due to attributing the "workflow_history"
     # to the object not working for the final workflow state
     # of dexterity types
