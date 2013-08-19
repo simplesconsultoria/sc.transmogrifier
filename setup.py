@@ -38,7 +38,11 @@ setup(name='sc.transmogrifier',
       install_requires=[
           'setuptools',
           'collective.transmogrifier',
+          'five.grok',
+          # Blueprint specific:
           'plone.app.redirector',
+          'five.intid',
+          'plone.app.referenceablebehavior'
       ],
       extras_require={
           'develop': [

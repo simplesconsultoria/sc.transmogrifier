@@ -4,8 +4,11 @@
     xmlns:zcml="http://namespaces.zope.org/zcml"
     i18n_domain="sc.transmogrifier">
 
+    <includeDependencies package="." />
 
     <include package="collective.transmogrifier" file="meta.zcml" />
+
+    <include package="five.grok" />
 
     <grok:grok package="." />
 
