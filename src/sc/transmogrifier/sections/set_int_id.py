@@ -1,15 +1,21 @@
 # coding: utf-8
-# Author: Joao S. O. Bueno
+# Author: João S. O. Bueno
 
 from Acquisition import aq_inner
 from zope.component import getUtility
-from zope.intid.interfaces import IIntIds
+from sc.transmogrifier import logger
+
+
 import transaction
 
 from sc.transmogrifier.utils import blueprint
 from sc.transmogrifier.utils import BluePrintBoiler
 
-from sc.transmogrifier import logger
+try:
+    from zope.intid.interfaces import IIntIds
+except ImportError:
+    logger.error("five.intid is not installed  -t he set_intid blueprint won't work at all")
+
 
 @blueprint("sc.transmogrifier.utils.set_intid")
 class SetIntId(BluePrintBoiler):
