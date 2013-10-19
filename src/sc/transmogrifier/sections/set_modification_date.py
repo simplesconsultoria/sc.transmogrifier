@@ -33,7 +33,7 @@ class SetModificationDate(BluePrintBoiler):
                 yield item; continue
             path = item[pathkey]
             #obj = context.unrestrictedTraverse(str(path).lstrip('/'), None)
-            if "modification_date" or creation_date in item:
+            if "modification_date" or "creation_date" in item:
                 paths_and_dates.append((path, item.get("modification_date", ""),
                                         item.get("creation_date", "")))
             yield item
