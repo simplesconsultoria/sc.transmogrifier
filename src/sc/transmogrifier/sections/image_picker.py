@@ -259,10 +259,10 @@ def _strip_view(url):
         except ValueError:
             return original, it_worked
         # FIXME: allow alternative for not named-as-file images
-        if p2.rsplit(".",1)[-1].lower() in (
+        if p2.rsplit(".",1)[-1].lower() in set((
                 "jpg", "jpeg", "gif", "png",
                 "tif", "tiff", "bmp", "svg", "webp",
-                ):
+                )):
             it_worked = True
         elif p2.startswith("resolveuid"):
             url += "/" + p3
